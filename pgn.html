@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title></title>
+</head>
+<body>
+<script	src="pgn.js"></script>
+<script>
+
+window.onload = function(evt) {
+
+	const pgnStr = "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 (4... Bc5 5. Bxf7+ (5. Nxf7) 5... Ke7 6. Bb3) (4... Qe7 5. Bxf7+ Kd8 6. Bb3) (4... Nxe4 5. Bxf7+ Ke7 6. d4 h6 7. Nxe4 Kxf7 8. d5) (4... h6 5. Nxf7) 5. exd5 Nxd5 (5... Na5 6. Bb5+ (6. d3 h6 7. Nf3 e4 8. Qe2 Nxc4 9. dxc4 Bc5 10. Nfd2 O-O) 6... c6 7. dxc6 bxc6 8. Bd3) (5... b5 6. Bf1 h6 (6... Nd4 7. c3 Nxd5 8. cxd4 Qxg5 9. Bxb5+ Kd8 10. dxe5 (10. Qf3 exd4 11. Bc6 Nf4 12. Bxa8 Bg4 13. Qe4 Bd6)) 7. Nxf7 Kxf7 8. dxc6 Be6) (5... Nd4 6. c3 b5 7. Bf1 Nxd5 8. cxd4 Qxg5) 6. Nxf7 Kxf7 7. Qf3+ Ke6 8. Nc3 Ncb4 9. O-O c6 10. d4 *";
+	const pgnVariations = [ "1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nxd5 6. Nxf7 Kxf7 7. Qf3+ Ke6 8. Nc3 Ncb4 9. O-O c6 10. d4",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Bc5 5. Bxf7+ Ke7 6. Bb3",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Bc5 5. Nxf7",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Qe7 5. Bxf7+ Kd8 6. Bb3",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 Nxe4 5. Bxf7+ Ke7 6. d4 h6 7. Nxe4 Kxf7 8. d5",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 h6 5. Nxf7",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Na5 6. Bb5+ c6 7. dxc6 bxc6 8. Bd3",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Na5 6. d3 h6 7. Nf3 e4 8. Qe2 Nxc4 9. dxc4 Bc5 10. Nfd2 O-O",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 b5 6. Bf1 h6 7. Nxf7 Kxf7 8. dxc6 Be6",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 b5 6. Bf1 Nd4 7. c3 Nxd5 8. cxd4 Qxg5 9. Bxb5+ Kd8 10. dxe5",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 b5 6. Bf1 Nd4 7. c3 Nxd5 8. cxd4 Qxg5 9. Bxb5+ Kd8 10. Qf3 exd4 11. Bc6 Nf4 12. Bxa8 Bg4 13. Qe4 Bd6",
+	"1. e4 e5 2. Nf3 Nc6 3. Bc4 Nf6 4. Ng5 d5 5. exd5 Nd4 6. c3 b5 7. Bf1 Nxd5 8. cxd4 Qxg5" ];
+
+	const tokens = PGN.load(pgnStr);
+	const variationsStr = PGN._stringifyVariations(PGN._variations);
+
+	variationsStr.forEach((variation, index) => {
+		console.log(variation);
+		console.log(pgnVariations[index]);
+		console.log(variation === pgnVariations[index]);
+	});
+}
+
+</script>
+</body>
+</html>
