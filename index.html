@@ -3,6 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="/favicon.ico" rel="icon" type="image/x-icon" />
 	<title>openings.js</title>
 	<link rel="stylesheet" href="dist/chessboard.css">
 </head>
@@ -14,10 +15,6 @@
 		color: #eee;
 		font-family: "Courier New", "Courier", "sans-serif";
 	}
-	#board {
-		width: 100%;
-		border: none;
-	}
 	.header {
 		margin: 1vw;
 	}
@@ -28,18 +25,34 @@
 		font-style: italic;
 		height: 1rem;
 	}
+	#board {
+		width: 100%;
+		border: none;
+	}
+	.footer {
+		margin: 1vw;
+	}
+	#status {
+		margin-bottom: 1vh;
+	}
+	#status p {
+		margin: 0;
+		padding: 0;
+		height: 1rem;
+	}
 </style>
 <body>
 	<div class="header">
 		<div class="title">Openings.js</div>
-		<div id="opening_name">???</div>
+		<!-- <div id="opening_name">???</div> -->
 	</div>
 	<div id="board"></div>
-	<div id="status">Loading...</div>
-	<div id="selection">
-		<select id="openings">
-		</select>
-		<button id="opening_ok">ok</button>
+	<div class="footer">
+		<div id="status">Loading...</div>
+		<div id="selection">
+			<select id="openings"></select>
+			<button id="opening_ok">ok</button>
+		</div>
 	</div>
 
 <script src="dist/jquery-3.4.1.min.js"></script>

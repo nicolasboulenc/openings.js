@@ -2,7 +2,7 @@
 
 //====================================================================================================
 
-function dots_remove () {
+function dots_remove() {
 	const elems = document.querySelectorAll("#board .square-55d63");
 	elems.forEach(elem => {
 		elem.style.backgroundImage = "none";
@@ -11,7 +11,7 @@ function dots_remove () {
 
 //====================================================================================================
 
-function dot_add (square) {
+function dot_add(square) {
 	const elem = document.querySelector(`#board .square-${square}`);
 	elem.style.backgroundImage = chesscom_dot;
 	elem.style.backgroundPosition = "center";
@@ -21,7 +21,7 @@ function dot_add (square) {
 
 //====================================================================================================
 
-function onDragStart (source, piece, position, orientation) {
+function on_drag_start(source, piece, position, orientation) {
 
 	// only pick up pieces for the side to move
 	// to fix search b
@@ -37,75 +37,81 @@ function onDragStart (source, piece, position, orientation) {
 	// highlight the possible squares for this piece
 	const moves = app.game.moves({ square: source, verbose: true });
 	for (var i = 0; i < moves.length; i++) {
-		dot_add(moves[i].to)
+		dot_add(moves[i].to);
 	}
 }
 
 //====================================================================================================
 
-function onDrop (source, target, piece, newPos, oldPos, orientation) {
+function on_drop(source, target, piece, newPos, oldPos, orientation) {
 
 	dots_remove();
 
 	const fen = app.game.fen();
-	let move = app.game.move({from: source, to: target, promotion: 'q'});
+	const move = app.game.move({from: source, to: target, promotion: "q"});
 
-	if (move !== null && move.san === app.variation[app.move_index]) {
+	let result = "correct";
 
+	// correct
+	if(move !== null && move.san === app.variation[app.move_index]) {
+
+		app.move_correct++;
+		status_update("Correct!");
+		timeout(1000).then(() => { status_update(); })
 		app.move_index++;
 
-		// make the next move
-		window.setTimeout(evt => {
-			app.game.move(app.variation[app.move_index], {sloppy: true});
-			app.board.position(app.game.fen());
-			app.move_index++;
-		}, 500);
+		timeout(500)
+		.then(() => {
+			if(app.move_index < app.variation.length) {
+				app.game.move(app.variation[app.move_index], {sloppy: true});
+				app.board.position(app.game.fen());
+				app.move_index++;
+			}
+			else {
+				status_update("End of variation.");
+			}
+		});
 	}
+	// incorrect
 	else {
+		if(move !== null) {
+			app.move_incorrect++;
+			status_update("No.");
+			timeout(1000).then(() => { status_update(); })
+		}
 		app.game.load(fen);
-		return 'snapback';
+		return "snapback";
 	}
-
-	updateStatus()
 }
 
 //====================================================================================================
-
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
-function onSnapEnd () {
-	app.board.position(app.game.fen())
+function on_snap_end() {
+
+	app.board.position(app.game.fen());
 }
 
 //====================================================================================================
 
-function updateStatus () {
-	var status = ''
+function status_update(result="") {
 
-	var moveColor = 'White'
-	if (app.game.turn() === 'b') {
-		moveColor = 'Black'
-	}
+	const opening = (app.opening_name.length > 0 ? app.opening_name : "...");
+	const res = (result.length > 0 ? result : "...");
 
-	// checkmate?
-	if (app.game.in_checkmate()) {
-		status = 'Game over, ' + moveColor + ' is in checkmate.'
-	}
+	let status = `<p>${opening}</p><p>&#x2611; ${app.move_correct}</p><p>&#x2612; ${app.move_incorrect}</p><p>${result}</p>`;
 
-	// draw?
-	else if (app.game.in_draw()) {
-		status = 'Game over, drawn position'
-	}
-
-	// game still on
-	else {
-		status = moveColor + ' to move'
-
-		// check?
-		if (app.game.in_check()) {
-			status += ', ' + moveColor + ' is in check'
-		}
-	}
+	// if (app.game.in_checkmate()) {
+	// 	status += "<p>Game over, checkmate.</p>";
+	// }
+	// else if (app.game.in_draw()) {
+	// 	status += "<p>Game over, drawn position.</p>";
+	// }
+	// else {
+	// 	if (app.game.in_check()) {
+	// 		status += "<p>Check.</p>";
+	// 	}
+	// }
 
 	app.status.innerHTML = status;
 }
@@ -116,12 +122,18 @@ function ok_click(evt) {
 
 	app.board.start(false);
 	app.game.reset();
-	const index = document.getElementById("openings").selectedIndex;
-	document.getElementById("opening_name").innerHTML = document.getElementById("openings").value;
-	PGN.load(app.openings[index].moves);
+	app.move_index = 0;
+	app.move_correct = 0;
+	app.move_incorrect = 0;
+
+	app.opening_name = document.getElementById("openings").value;
+	status_update();
+
+	const opening_index = document.getElementById("openings").selectedIndex;
+	PGN.load(app.openings[opening_index].moves);
 	app.variations = PGN.getVariations();
-	app.variations_index = Math.floor(Math.random() * app.variations.length);
-	app.variation = app.variations[app.variations_index];
+	const variation_index = Math.floor(Math.random() * app.variations.length);
+	app.variation = app.variations[variation_index];
 }
 
 //====================================================================================================
@@ -147,8 +159,16 @@ function start(openings=null) {
 		document.getElementById("openings").innerHTML = options;
 		document.getElementById("opening_ok").onclick = ok_click;
 
-		updateStatus();
+		status_update();
 	}
+}
+
+//====================================================================================================
+
+function timeout(delay) {
+    return new Promise(function(resolve) {
+        window.setTimeout(resolve, delay);
+    });
 }
 
 //====================================================================================================
@@ -183,22 +203,23 @@ const config = {
 	boardTheme: chesscom_theme.board,
 	draggable: true,
 	position: "start",
-	onDragStart: onDragStart,
-	onDrop: onDrop,
-	onSnapEnd: onSnapEnd
+	onDragStart: on_drag_start,
+	onDrop: on_drop,
+	onSnapEnd: on_snap_end
 };
 
 const app = {
+	board: null,
+	game: null,
 	start: false,
+	status: null,
 	player_color: "w",
 	opponent_color: "b",
+	openings: null,			// from openings.json
+	opening_name: "",		// current opening name
+	variations: null,		// variations of a specific opening
+	variation: null,		// actual variation
 	move_index: 0,
-	openings: null,
-	variations_index: 0,
-	variation: null,
-	status: null,
-	game: null,
-	board: null,
-	variations: null,
-	variation: null
+	move_correct: 0,
+	move_incorrect: 0
 };
