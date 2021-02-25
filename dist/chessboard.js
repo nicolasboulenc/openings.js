@@ -1616,7 +1616,7 @@
     }
 
     function touchstartSquare (e) {
-		console.log("touch start");
+		// console.log("touch start");
 
       // do nothing if we're not draggable
 	  if (!config.draggable) return
@@ -1670,7 +1670,7 @@
     var throttledMousemoveWindow = throttle(mousemoveWindow, config.dragThrottleRate)
 
     function touchmoveWindow (evt) {
-		console.log("touch mmove");
+		// console.log("touch mmove");
       // do nothing if we are not dragging a piece
       if (!isDragging) return
 
@@ -1697,7 +1697,7 @@
     }
 
     function touchendWindow (evt) {
-		console.log("touch end");
+		// console.log("touch end");
 
 		// do nothing if we are not dragging a piece
       if (!isDragging) return
