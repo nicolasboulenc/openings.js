@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link href="/favicon.ico" rel="icon" type="image/x-icon" />
-	<title>openings.js</title>
+	<title>openings trainer</title>
 	<link rel="stylesheet" href="dist/chessboard.css">
 </head>
 <style>
@@ -29,7 +29,7 @@
 	.footer {
 		margin: 1vw;
 	}
-	.status div {
+	.footer div {
 		margin: 0;
 		padding: 0;
 		margin-bottom: 1vh;
@@ -40,9 +40,12 @@
 	}
 	#opening_name {
 		flex-grow: 10;
+		overflow: hidden;
+		white-space:nowrap;
 	}
 	#move_count {
 		padding-right: 1vw;
+		/* flex-grow: 1; */
 	}
 	#move_correctness span.c {
 		color: #77dd77;
@@ -62,9 +65,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-	}
-	#selection * {
-		height: 2rem
+		font-size: 1rem;
 	}
 	button {
 		background-color: transparent;
@@ -83,12 +84,18 @@
 		border: 1px solid lightgray;
 		border-radius: 0.2rem;
 		padding: 0 1rem 0 0;
-		margin: 0;
+		margin: 0 1vw 0 0;
 		height: 2rem;
-		width: 100%;
 		color: inherit;
 		font-family: inherit;
 		font-size: inherit;
+	}
+	#openings {
+		flex-grow: 10;
+		max-width: 66vw;
+	}
+	#variations {
+		flex-grow: 2;
 	}
 	p {
 		font-style: italic;
@@ -97,21 +104,17 @@
 </style>
 <body>
 	<div class="header">
-		<div class="title">Openings.js</div>
+		<div class="title">Openings Trainer</div>
 	</div>
 	<div id="board"></div>
 	<div class="footer">
-		<div class="status">
-			<div><div id="opening_name"></div><div id="move_count"></div></div>
-			<div><div id="move_correctness"></div><div id="hint"><button id="hint_button">Hint</button></div></div>
-			<div><div id="message"></div></div>
-		</div>
-		<br>
+		<div><div id="opening_name"></div><div id="move_count"></div></div>
+		<div><div id="move_correctness"></div><div id="hint"><button id="hint_button">Hint</button></div></div>
 		<div id="selection">
-			<select id="openings"></select>&nbsp;
+			<select id="openings"></select>
+			<select id="variations"><option>Rnd</option></select>
 			<button id="opening_ok_button">ok</button>
 		</div>
-		<p>* Click ok for next variation</p>
 	</div>
 </body>
 <script src="dist/jquery-3.4.1.min.js"></script>

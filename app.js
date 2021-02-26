@@ -55,19 +55,17 @@ function on_drop(source, target, piece, newPos, oldPos, orientation) {
 	const move = app.game.move({from: source, to: target, promotion: "q"});
 
 	let result = "correct";
-	const offset = (app.player_color === "w" ? 0 : 1);
+	const offset = (app.player === "w" ? 0 : 1);
 
 	// correct
 	if(move !== null && move.san === app.variation[app.move_index]) {
 
-		if(app.moves_correctness.length === app.move_index / 2 + offset) {
+		// to fix: this is not working
+		if(app.moves_correctness.length === Math.floor((app.move_index + offset) / 2)) {
 			app.moves_correctness.push(true);
-			console.log("push")
 		}
 		app.move_index++;
 		document.getElementById("hint_button").style.display = "none";
-		status_update("Correct!");
-		timeout(2000).then(() => { status_update(); })
 
 		timeout(500)
 		.then(() => {
@@ -75,9 +73,6 @@ function on_drop(source, target, piece, newPos, oldPos, orientation) {
 				app.game.move(app.variation[app.move_index], {sloppy: true});
 				app.board.position(app.game.fen());
 				app.move_index++;
-			}
-			else {
-				status_update("End of variation.");
 			}
 		});
 	}
@@ -89,12 +84,12 @@ function on_drop(source, target, piece, newPos, oldPos, orientation) {
 				console.log("push")
 			}
 			document.getElementById("hint_button").style.display = "inline-block";
-			status_update("No.");
-			timeout(2000).then(() => { status_update(); });
 		}
 		app.game.load(fen);
 		return "snapback";
 	}
+
+	status_update();
 }
 
 //====================================================================================================
@@ -107,71 +102,82 @@ function on_snap_end() {
 
 //====================================================================================================
 
-function status_update(message="") {
+function status_update() {
 
-	if(app.start !== true) {
-		document.getElementById("message").innerHTML = "Choose your opening.";
-	}
-	else if(app.start === true && app.move_index === 0){ 
-		document.getElementById("message").innerHTML = "Let's go!";
-	}
-	else {
-		// update move count
-		const offset = (app.player_color === "w" ? 0 : 1);
-		const move_count = Math.round(app.variation.length / 2) + offset;
-		// +1 to start at 1, +offset to deal with white/black
-		const move_index = Math.floor((app.move_index + 1) / 2) + offset;
-		document.getElementById("move_count").innerHTML = `${move_index}/${move_count}`;
+	// update move count
+	const offset = (app.player === "w" ? 0 : 1);
+	// to fix: this is not working
+	const move_count = Math.round(app.variation.length / 2) + offset;
+	// move_index has already been incremented
+	const move_index = Math.floor((app.move_index - 1) / 2) + 1;
+	document.getElementById("move_count").innerHTML = `${move_index}/${move_count}`;
 
-		// update move correctness
-		let correct_string = "";
-		app.moves_correctness.forEach(correctness => {
-			if(correctness) {
-				correct_string += '<span class="c">&#x2611;</span>';
-			}
-			else {
-				correct_string += '<span class="i">&#x2612;</span>';
-			}
-		})
-		document.getElementById("move_correctness").innerHTML = correct_string;
-
-		// update message
-		document.getElementById("message").innerHTML = message;
-	}
-
-	// if (app.game.in_checkmate()) {
-	// 	status += "<p>Game over, checkmate.</p>";
-	// }
-	// else if (app.game.in_draw()) {
-	// 	status += "<p>Game over, drawn position.</p>";
-	// }
-	// else {
-	// 	if (app.game.in_check()) {
-	// 		status += "<p>Check.</p>";
-	// 	}
-	// }
+	// update move correctness
+	let correct_string = "";
+	app.moves_correctness.forEach(correctness => {
+		if(correctness) {
+			correct_string += '<span class="c">&#x2611;</span>';
+		}
+		else {
+			correct_string += '<span class="i">&#x2612;</span>';
+		}
+	})
+	document.getElementById("move_correctness").innerHTML = correct_string;
 }
 
 //====================================================================================================
 
-function ok_click(evt) {
+function opening_ok_click(evt) {
 
 	app.board.start(false);
+	if(app.player === "w") {
+		app.board.orientation("white");
+	}
+	else {
+		app.board.orientation("black");
+
+		// computer plays white first
+		timeout(500)
+		.then(() => {
+			if(app.move_index < app.variation.length) {
+				app.game.move(app.variation[app.move_index], {sloppy: true});
+				app.board.position(app.game.fen());
+				app.move_index++;
+			}
+		});
+	}
+
 	app.game.reset();
 	app.move_index = 0;
 	app.moves_correctness = [];
 	document.getElementById("opening_name").innerHTML = document.getElementById("openings").value;
 
 
-	const opening_index = document.getElementById("openings").selectedIndex;
-	PGN.load(app.openings[opening_index].moves);
-	app.variations = PGN.getVariations();
-	// const variation_index = Math.floor(Math.random() * app.variations.length);
-	const variation_index = 0;
+	let variation_index = document.getElementById("variations").selectedIndex - 1;
+	if(variation_index === -1) {
+		variation_index = Math.floor(Math.random() * app.variations.length);
+	}
 	app.variation = app.variations[variation_index];
 
 	app.start = true;
 	status_update();
+}
+
+//====================================================================================================
+
+function opening_change(evt) {
+
+	const opening_index = document.getElementById("openings").selectedIndex - 1;
+	app.player = app.openings[opening_index].player;
+	PGN.load(app.openings[opening_index].moves);
+	app.variations = PGN.getVariations();
+
+	let html = '<option value="0">Rnd</option>';
+	app.variations.forEach((name, idx) => {
+		html += `<option value="${idx+1}">${idx+1}</option>`;
+	});
+
+	document.getElementById("variations").innerHTML = html;
 }
 
 //====================================================================================================
@@ -189,14 +195,13 @@ function start(openings=null) {
 	}
 	// update select
 	if(app.openings !== null && app.game !== null) {
-		let options = "";
+		let html = '<option value="">Choose an opening</option>';
 		app.openings.forEach(opening => {
-			options += `<option name="${opening.name}">${opening.name}</option>`;
+			html += `<option value="${opening.name}">${opening.name}</option>`;
 		});
-		document.getElementById("openings").innerHTML = options;
-		document.getElementById("opening_ok_button").onclick = ok_click;
-
-		status_update();
+		document.getElementById("openings").innerHTML = html;
+		document.getElementById("openings").onchange = opening_change;
+		document.getElementById("opening_ok_button").onclick = opening_ok_click;
 	}
 }
 
@@ -266,11 +271,10 @@ const app = {
 	board: null,
 	game: null,
 	start: false,
-	player_color: "w",
-	opponent_color: "b",
+	player: "w",
 	openings: null,			// from openings.json
-	variations: null,		// variations of a specific opening
-	variation: null,		// actual variation
+	variations: null,		// variations for the selected opening
+	variation: null,		// current variation
 	move_index: 0,
 	moves_correctness: [],
 };
