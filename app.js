@@ -23,18 +23,18 @@ function dot_add(square) {
 
 function on_drag_start(source, piece, position, orientation) {
 
-	if(app.start !== true) return;
+	dots_remove();
+
+	if(app.start !== true) return false;
+
+	// only pick up if players turn
+	if(app.game.turn() !== app.player) return false;
 
 	// only pick up pieces for the side to move
-	// to fix search b
-	// if (game.turn() === opponent_color && piece.search(/^w/) !== -1) {
-	// 	return false
-	// }
+	if(piece.charAt(0) !== app.player) return false
 
 	// do not pick up pieces if the game is over
-	// if (game.game_over()) return false
-
-	dots_remove();
+	if (app.game.game_over()) return false
 
 	// highlight the possible squares for this piece
 	const moves = app.game.moves({ square: source, verbose: true });
@@ -47,25 +47,27 @@ function on_drag_start(source, piece, position, orientation) {
 
 function on_drop(source, target, piece, newPos, oldPos, orientation) {
 
-	if(app.start !== true) return;
+	if(app.start !== true) return "";
 
 	dots_remove();
 
 	const fen = app.game.fen();
 	const move = app.game.move({from: source, to: target, promotion: "q"});
+	if(move === null) return "";
 
-	let result = "correct";
-	const offset = (app.player === "w" ? 0 : 1);
+	let move_index = Math.round(app.move_index / 2);
+	if(app.player === "b") {
+		move_index = Math.floor(app.move_index / 2);
+	}
 
 	// correct
-	if(move !== null && move.san === app.variation[app.move_index]) {
+	if(move.san === app.variation[app.move_index]) {
 
-		// to fix: this is not working
-		if(app.moves_correctness.length === Math.floor((app.move_index + offset) / 2)) {
+		if(app.moves_correctness.length === move_index) {
 			app.moves_correctness.push(true);
 		}
 		app.move_index++;
-		document.getElementById("hint_button").style.display = "none";
+		// document.getElementById("hint_button").style.display = "none";
 
 		timeout(500)
 		.then(() => {
@@ -75,21 +77,19 @@ function on_drop(source, target, piece, newPos, oldPos, orientation) {
 				app.move_index++;
 			}
 		});
+		status_update();
+		return "";
 	}
 	// incorrect
 	else {
-		if(move !== null) {
-			if(app.moves_correctness.length === app.move_index / 2 + offset) {
-				app.moves_correctness.push(false);
-				console.log("push")
-			}
-			document.getElementById("hint_button").style.display = "inline-block";
+		if(app.moves_correctness.length === move_index) {
+			app.moves_correctness.push(false);
 		}
+		// document.getElementById("hint_button").style.display = "inline-block";
+		status_update();
 		app.game.load(fen);
 		return "snapback";
 	}
-
-	status_update();
 }
 
 //====================================================================================================
@@ -105,11 +105,13 @@ function on_snap_end() {
 function status_update() {
 
 	// update move count
-	const offset = (app.player === "w" ? 0 : 1);
-	// to fix: this is not working
-	const move_count = Math.round(app.variation.length / 2) + offset;
-	// move_index has already been incremented
-	const move_index = Math.floor((app.move_index - 1) / 2) + 1;
+	let move_count = Math.round(app.variation.length / 2);
+	let move_index = Math.round(app.move_index / 2);
+	if(app.player === "b") {
+		move_count = Math.floor(app.variation.length / 2);
+		move_index = Math.floor(app.move_index / 2);
+	}
+
 	document.getElementById("move_count").innerHTML = `${move_index}/${move_count}`;
 
 	// update move correctness
